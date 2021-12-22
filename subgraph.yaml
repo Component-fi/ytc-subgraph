@@ -1,0 +1,22 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: YieldTokenCompounding
+    network: mainnet
+    source:
+      address: "0x3df5229f24040cf0218969c2406b302744edc18b"
+      abi: YieldTokenCompounding
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+
+      abis:
+        - name: YieldTokenCompounding
+          file: ./abis/YieldTokenCompounding.json
+      eventHandlers:
+
+      file: ./src/mapping.ts
