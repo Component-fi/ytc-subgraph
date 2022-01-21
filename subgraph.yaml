@@ -20,6 +20,8 @@ dataSources:
           file: ./abis/YieldTokenCompounding.json
         - name: ITranche
           file: ./abis/ITranche.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       callHandlers:
         - function: approveTranchePTOnBalancer(address)
           handler: handleNewTermApproval

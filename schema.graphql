@@ -2,7 +2,7 @@ type Term @entity {
   id: ID!
   address: Bytes!
   expiration: BigInt!
-  baseTokenAddress: Bytes!
+  baseToken: Token!
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "term")
 }
 
@@ -15,5 +15,18 @@ type EntryTransaction @entity {
   yieldTokensReceived: BigInt!
   gasPrice: BigInt!
   gasLimit: BigInt!
-  from: Bytes!
+  from: User!
+}
+
+type Token @entity {
+  id: ID!
+  name: String!
+  symbol: String!
+  decimals: Int!
+  terms: [Term!]! @derivedFrom(field: "baseToken")
+}
+
+type User @entity {
+  id: ID!
+  Transactions: [EntryTransaction!]! @derivedFrom(field: "from")
 }
