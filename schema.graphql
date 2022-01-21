@@ -1,5 +1,19 @@
-type ExampleEntity @entity {
+type Term @entity {
   id: ID!
-  block: Bytes!
-  count: BigInt!
+  address: Bytes!
+  expiration: BigInt!
+  baseTokenAddress: Bytes!
+  entryTransactions: [EntryTransaction!]! @derivedFrom(field: "term")
+}
+
+type EntryTransaction @entity {
+  id: ID!
+  numberOfCompounds: Int!
+  term: Term!
+  amountCollateralDeposited: BigInt!
+  baseTokensSpent: BigInt!
+  yieldTokensReceived: BigInt!
+  gasPrice: BigInt!
+  gasLimit: BigInt!
+  from: Bytes!
 }

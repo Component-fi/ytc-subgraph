@@ -1,4 +1,4 @@
-specVersion: 0.0.1
+specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
@@ -8,15 +8,21 @@ dataSources:
     source:
       address: "0x3df5229f24040cf0218969c2406b302744edc18b"
       abi: YieldTokenCompounding
+      startBlock: 13641565
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-
+        - Term
       abis:
         - name: YieldTokenCompounding
           file: ./abis/YieldTokenCompounding.json
-      eventHandlers:
-
+        - name: ITranche
+          file: ./abis/ITranche.json
+      callHandlers:
+        - function: approveTranchePTOnBalancer(address)
+          handler: handleNewTermApproval
+        - function: compound(uint8,address,bytes32,uint256,uint256,uint256)
+          handler: handleYieldCompound
       file: ./src/mapping.ts
