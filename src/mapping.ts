@@ -29,6 +29,17 @@ export function handleNewTermApproval(call: ApproveTranchePTOnBalancerCall): voi
 
         term.baseToken = baseTokenAddress.toHex();
 
+        const trancheContract = ITranche.bind(address);
+        const trancheERC20 = ERC20.bind(address);
+        const trancheDecimals = trancheERC20.decimals();
+
+        const wrappedPosition = trancheContract.position();
+        const wrappedPositionERC20 = ERC20.bind(wrappedPosition);
+        const wrappedDecimals = wrappedPositionERC20.decimals();
+
+        term.trancheDecimals = trancheDecimals;
+        term.wrappedDecimals = wrappedDecimals;
+
         term.save()
 
         let termList = TermList.load("0");
@@ -115,25 +126,19 @@ export function handleUpdateAccrual(block: ethereum.Block): void {
                 // add a new accrued value
                 let address: Address = Address.fromString(termEntity.id);
                 const trancheContract = ITranche.bind(address);
-                const trancheERC20 = ERC20.bind(address);
                 const wrappedPosition = trancheContract.position();
                 const wrappedPositionContract = IWrappedPosition.bind(wrappedPosition);
-                const wrappedPositionERC20 = ERC20.bind(wrappedPosition);
                 const trancheSupply = trancheContract.totalSupply();
-                const trancheDecimals = trancheERC20.decimals();
                 let interestSupply = trancheContract.interestSupply();
                 let wrappedSupply = wrappedPositionContract.balanceOfUnderlying(address);
-                const wrappedDecimals = wrappedPositionERC20.decimals();
 
 
                 log.debug(
-                    "term: {}, trancheSupply: {}, trancheDecimals: {}, wrappedSupply: {}, wrappedDecimals: {}, interestSupply: {}",
+                    "term: {}, trancheSupply: {}, wrappedSupply: {}, interestSupply: {}",
                     [
                         term,
                         trancheSupply.toString(),
-                        trancheDecimals.toString(),
                         wrappedSupply.toString(),
-                        wrappedDecimals.toString(),
                         interestSupply.toString()
                     ]
                 )
@@ -144,9 +149,6 @@ export function handleUpdateAccrual(block: ethereum.Block): void {
                 accruedValueEntity.trancheSupply = trancheSupply;
                 accruedValueEntity.wrappedSupply = wrappedSupply;
                 accruedValueEntity.ytSupply = interestSupply;
-                // TODO these decikmal values can probably be moved to the tranche entity
-                accruedValueEntity.trancheDecimals = trancheDecimals;
-                accruedValueEntity.wrappedDecimals = wrappedDecimals;
                 accruedValueEntity.term = term;
                 accruedValueEntity.save();
             }

@@ -5,6 +5,8 @@ type Term @entity {
   baseToken: Token!
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "term")
   dailyAccruedValues: [AccruedValue!]! @derivedFrom(field: "term")
+  trancheDecimals: Int!
+  wrappedDecimals: Int!
 }
 
 type TermList @entity {
@@ -17,10 +19,8 @@ type AccruedValue @entity {
   id: ID!
   term: Term!
   trancheSupply: BigInt!
-  trancheDecimals: Int!
   ytSupply: BigInt!
   wrappedSupply: BigInt!
-  wrappedDecimals: Int!
   timestamp: BigInt!
 }
 
