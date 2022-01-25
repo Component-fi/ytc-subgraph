@@ -64,6 +64,7 @@ export function handleYieldCompound(call: CompoundCall): void {
     entryTransaction.baseTokensSpent = call.outputs.value1;
     entryTransaction.gasPrice = call.transaction.gasPrice;
     entryTransaction.gasLimit = call.transaction.gasLimit;
+    entryTransaction.timestamp = call.block.timestamp;
 
     let userId = call.transaction.from.toHex();
 

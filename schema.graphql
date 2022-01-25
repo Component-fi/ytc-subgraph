@@ -34,6 +34,7 @@ type EntryTransaction @entity {
   gasPrice: BigInt!
   gasLimit: BigInt!
   from: User!
+  timestamp: BigInt!
 }
 
 type Token @entity {
