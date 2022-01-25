@@ -22,9 +22,13 @@ dataSources:
           file: ./abis/ITranche.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: IWrappedPosition
+          file: ./abis/IWrappedPosition.json
       callHandlers:
         - function: approveTranchePTOnBalancer(address)
           handler: handleNewTermApproval
         - function: compound(uint8,address,bytes32,uint256,uint256,uint256)
           handler: handleYieldCompound
       file: ./src/mapping.ts
+      blockHandlers:
+        - handler: handleUpdateAccrual

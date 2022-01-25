@@ -1,9 +1,27 @@
 type Term @entity {
   id: ID!
-  address: Bytes!
+  address: Bytes! #address
   expiration: BigInt!
   baseToken: Token!
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "term")
+  dailyAccruedValues: [AccruedValue!]! @derivedFrom(field: "term")
+}
+
+type TermList @entity {
+  id: ID!
+  activeTerms: [Term!]!
+  lastUpdate: BigInt!
+}
+
+type AccruedValue @entity {
+  id: ID!
+  term: Term!
+  trancheSupply: BigInt!
+  trancheDecimals: Int!
+  ytSupply: BigInt!
+  wrappedSupply: BigInt!
+  wrappedDecimals: Int!
+  timestamp: BigInt!
 }
 
 type EntryTransaction @entity {
