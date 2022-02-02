@@ -2,11 +2,12 @@ type Term @entity {
   id: ID!
   address: Bytes! #address
   expiration: BigInt!
-  baseToken: Token!
+  baseToken: BaseToken!
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "term")
-  dailyAccruedValues: [AccruedValue!]! @derivedFrom(field: "term")
   trancheDecimals: Int!
   wrappedDecimals: Int!
+  yToken: YieldToken!
+  pToken: PrincipalToken!
 }
 
 type TermList @entity {
@@ -17,11 +18,25 @@ type TermList @entity {
 
 type AccruedValue @entity {
   id: ID!
-  term: Term!
   trancheSupply: BigInt!
   ytSupply: BigInt!
   wrappedSupply: BigInt!
+}
+
+type YieldPoolState @entity {
+  id: ID!
   timestamp: BigInt!
+  ytReserves: BigInt!
+  baseReserves: BigInt!
+  pool: YieldPool!
+}
+
+type PrincipalPoolState @entity {
+  id: ID!
+  timestamp: BigInt!
+  ptReserves: BigInt!
+  baseReserves: BigInt!
+  pool: PrincipalPool!
 }
 
 type EntryTransaction @entity {
@@ -35,9 +50,10 @@ type EntryTransaction @entity {
   gasLimit: BigInt!
   from: User!
   timestamp: BigInt!
+  accruedValue: AccruedValue!
 }
 
-type Token @entity {
+type BaseToken @entity {
   id: ID!
   name: String!
   symbol: String!
@@ -45,7 +61,45 @@ type Token @entity {
   terms: [Term!]! @derivedFrom(field: "baseToken")
 }
 
+type YieldToken @entity {
+  id: ID!
+  name: String!
+  symbol: String!
+  decimals: Int!
+  terms: Term! @derivedFrom(field: "yToken")
+}
+
+type PrincipalToken @entity {
+  id: ID!
+  name: String!
+  symbol: String!
+  decimals: Int!
+  terms: Term! @derivedFrom(field: "pToken")
+}
+
 type User @entity {
   id: ID!
   Transactions: [EntryTransaction!]! @derivedFrom(field: "from")
+}
+
+type YieldPool @entity {
+  id: ID!
+  yToken: YieldToken!
+  baseToken: BaseToken!
+  yTokenWeight: BigInt!
+  baseTokenWeight: BigInt!
+  address: Bytes!
+  swapFeePercentage: BigInt!
+  name: String!
+  states: [YieldPoolState!]! @derivedFrom(field: "pool")
+}
+
+type PrincipalPool @entity {
+  id: ID!
+  pToken: PrincipalToken!
+  baseToken: BaseToken!
+  timeStretch: BigInt!
+  swapFeePercentage: BigInt!
+  address: Bytes!
+  states: [PrincipalPoolState!]! @derivedFrom(field: "pool")
 }
