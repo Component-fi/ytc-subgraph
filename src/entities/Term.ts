@@ -73,7 +73,6 @@ export const ensureTerm = (
         let principaltokenAddress = address.toHexString();
         let pt = ensurePrincipalToken(principaltokenAddress);
         term.pToken = pt.id;
-        log.warning("Term pt, {}", [pt.id]);
 
         const trancheContract = ITranche.bind(address);
         const trancheERC20 = ERC20.bind(address);

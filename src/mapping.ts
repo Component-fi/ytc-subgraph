@@ -98,8 +98,6 @@ function handlePrincipalPoolSwap(event: Swap): void {
     let timestamp = event.block.timestamp;
     let id = timestamp.toString() + poolId;
 
-    log.warning("Adding principal pool state for tx", [event.transaction.hash.toHexString()])
-
     addPrincipalPoolState(
         id,
         timestamp,

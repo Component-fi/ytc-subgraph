@@ -12,8 +12,6 @@ export const addYieldPoolState = (
     timestamp: BigInt,
     poolId: string
 ): YieldPoolState | null => {
-    log.warning("starting yield pool state add", []);
-
     let yieldPoolState = new YieldPoolState(id);
 
     yieldPoolState.pool = poolId;
@@ -52,5 +50,4 @@ export const addYieldPoolState = (
 
     yieldPoolState.save();
     return yieldPoolState;
-    log.warning("ending yield pool state add", []);
 }

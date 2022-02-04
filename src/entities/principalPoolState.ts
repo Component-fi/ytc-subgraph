@@ -12,7 +12,6 @@ export const addPrincipalPoolState = (
     timestamp: BigInt,
     poolId: string,
 ): PrincipalPoolState | null => {
-    log.warning("starting principal pool state add", []);
 
     let principalPoolState = new PrincipalPoolState(id);
 
@@ -75,6 +74,5 @@ export const addPrincipalPoolState = (
     }
 
     principalPoolState.save();
-    log.warning("ending principal pool state add", []);
     return principalPoolState;
 }
