@@ -29,6 +29,7 @@ export const ensureEntryTransaction = (
             entryTransaction.gasPrice = gasPrice;
             entryTransaction.gasLimit = gasLimit;
             entryTransaction.timestamp = ensureTimestamp(timestamp).id;
+            entryTransaction.timestampId = timestamp;
         }
 
         return entryTransaction;

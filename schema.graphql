@@ -27,6 +27,7 @@ type AccruedValue @entity {
 type YieldPoolState @entity {
   id: ID!
   timestamp: Timestamp!
+  timestampId: BigInt!
   ytReserves: BigInt!
   baseReserves: BigInt!
   spotPrice: BigDecimal!
@@ -37,6 +38,7 @@ type YieldPoolState @entity {
 type PrincipalPoolState @entity {
   id: ID!
   timestamp: Timestamp!
+  timestampId: BigInt!
   ptReserves: BigInt!
   baseReserves: BigInt!
   totalSupply: BigInt!
@@ -56,6 +58,7 @@ type EntryTransaction @entity {
   gasLimit: BigInt!
   from: User!
   timestamp: Timestamp!
+  timestampId: BigInt!
   accruedValue: AccruedValue!
 }
 

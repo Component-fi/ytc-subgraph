@@ -1,9 +1,10 @@
 import { Address, BigDecimal, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { log } from "matchstick-as";
-import { YieldPool, YieldPoolState } from "../../generated/schema";
+import { YieldPool, YieldPoolState, YieldToken } from "../../generated/schema";
 import { IVault } from "../../generated/YieldTokenCompounding/IVault";
 import { BALANCER_VAULT_ADDRESS } from "../constants";
 import { calcSpotPriceYt } from "../helpers/prices";
+import { ensureAccruedValue } from "./AccruedValue";
 import { ensureTimestamp } from "./Timestamp";
 
 
@@ -16,6 +17,8 @@ export const addYieldPoolState = (
 
     yieldPoolState.pool = poolId;
     yieldPoolState.timestamp = ensureTimestamp(timestamp).id;
+    yieldPoolState.timestampId = timestamp;
+
 
     let yieldPool  = YieldPool.load(poolId);
 
@@ -47,6 +50,15 @@ export const addYieldPoolState = (
             yieldPoolState.ytReserves.toString()
         ).toString()
     );
+
+    let yieldToken = YieldToken.load(tokenAddresses[yIndex].toHexString());
+
+    if (yieldToken){
+        yieldPoolState.accruedValue = ensureAccruedValue(
+            id,
+            yieldToken.id
+        ).id
+    }
 
     yieldPoolState.save();
     return yieldPoolState;

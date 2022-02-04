@@ -17,6 +17,7 @@ export const addPrincipalPoolState = (
 
     principalPoolState.pool = poolId;
     principalPoolState.timestamp = ensureTimestamp(timestamp).id;
+    principalPoolState.timestampId = timestamp;
 
     let principalPool = PrincipalPool.load(poolId);
 
