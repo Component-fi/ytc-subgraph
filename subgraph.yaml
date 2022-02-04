@@ -71,6 +71,29 @@ dataSources:
           handler: handleDeployTranche
       file: ./src/mapping.ts
   - kind: ethereum
+    name: BalancerVault
+    network: mainnet
+    source:
+      address: "0xba12222222228d8ba445958a75a0704d566bf2c8"
+      abi: IVault
+      startBlock: 12705801
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - YieldPoolState
+        - PrincipalPoolState
+      abis:
+        - name: IVault
+          file: ./abis/IVault.json
+        - name: ConvergentCurvePool
+          file: ./abis/ConvergentCurvePool.json
+      eventHandlers:
+        - event: Swap(indexed bytes32,indexed address,indexed address,uint256,uint256)
+          handler: handleSwapEvent
+      file: ./src/mapping.ts
+  - kind: ethereum
     name: YieldTokenCompounding
     network: mainnet
     source:
@@ -99,25 +122,4 @@ dataSources:
       callHandlers:
         - function: compound(uint8,address,bytes32,uint256,uint256,uint256)
           handler: handleYieldCompound
-      file: ./src/mapping.ts
-  - kind: ethereum
-    name: BalancerVault
-    network: mainnet
-    source:
-      address: "0xba12222222228d8ba445958a75a0704d566bf2c8"
-      abi: IVault
-      startBlock: 12705801
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.5
-      language: wasm/assemblyscript
-      entities:
-        - YieldPoolState
-        - PrincipalPoolState
-      abis:
-        - name: IVault
-          file: ./abis/IVault.json
-      eventHandlers:
-        - event: Swap(indexed bytes32,indexed address,indexed address,uint256,uint256)
-          handler: handleSwapEvent
       file: ./src/mapping.ts

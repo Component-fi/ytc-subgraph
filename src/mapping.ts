@@ -1,4 +1,4 @@
-import { Address } from "@graphprotocol/graph-ts"
+import { Address, log } from "@graphprotocol/graph-ts"
 import { CreateCall } from '../generated/WeightedPoolFactory/WeightedPoolFactory';
 import { DeployTrancheCall } from '../generated/TrancheFactory/TrancheFactory';
 import { CreateCall as CreateCCCall } from '../generated/ConvergentPoolFactory/ConvergentPoolFactory';
@@ -97,6 +97,8 @@ function handlePrincipalPoolSwap(event: Swap): void {
     let poolId = event.params.poolId.toHexString();
     let timestamp = event.block.timestamp;
     let id = timestamp.toString() + poolId;
+
+    log.warning("Adding principal pool state for tx", [event.transaction.hash.toHexString()])
 
     addPrincipalPoolState(
         id,

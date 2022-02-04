@@ -1,4 +1,4 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt, log } from "@graphprotocol/graph-ts";
 import { BaseToken, PrincipalToken, Term, TermList, YieldToken } from "../../generated/schema";
 import { ERC20 } from "../../generated/YieldTokenCompounding/ERC20";
 import { ITranche } from "../../generated/YieldTokenCompounding/ITranche";
@@ -42,6 +42,8 @@ const ensurePrincipalToken = (principalTokenAddress: string): PrincipalToken => 
             principalToken.name = token.name();
             principalToken.symbol = token.symbol();
             principalToken.decimals = token.decimals();
+            const principalTokenContract = ITranche.bind(Address.fromString(principalToken.id));
+            principalToken.expiration = principalTokenContract.unlockTimestamp();
             principalToken.save();
         }
     return principalToken;
@@ -71,6 +73,7 @@ export const ensureTerm = (
         let principaltokenAddress = address.toHexString();
         let pt = ensurePrincipalToken(principaltokenAddress);
         term.pToken = pt.id;
+        log.warning("Term pt, {}", [pt.id]);
 
         const trancheContract = ITranche.bind(address);
         const trancheERC20 = ERC20.bind(address);

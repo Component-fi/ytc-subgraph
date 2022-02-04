@@ -1,8 +1,10 @@
-import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { log } from "matchstick-as";
 import { YieldPool, YieldPoolState } from "../../generated/schema";
 import { IVault } from "../../generated/YieldTokenCompounding/IVault";
 import { BALANCER_VAULT_ADDRESS } from "../constants";
+import { calcSpotPriceYt } from "../helpers/prices";
+import { ensureTimestamp } from "./Timestamp";
 
 
 export const addYieldPoolState = (
@@ -10,11 +12,12 @@ export const addYieldPoolState = (
     timestamp: BigInt,
     poolId: string
 ): YieldPoolState | null => {
+    log.warning("starting yield pool state add", []);
 
     let yieldPoolState = new YieldPoolState(id);
 
     yieldPoolState.pool = poolId;
-    yieldPoolState.timestamp = timestamp;
+    yieldPoolState.timestamp = ensureTimestamp(timestamp).id;
 
     let yieldPool  = YieldPool.load(poolId);
 
@@ -40,6 +43,14 @@ export const addYieldPoolState = (
     yieldPoolState.ytReserves = balances[yIndex];
     yieldPoolState.baseReserves = balances[baseIndex];
 
+    yieldPoolState.spotPrice = BigDecimal.fromString(
+        calcSpotPriceYt(
+            yieldPoolState.baseReserves.toString(),
+            yieldPoolState.ytReserves.toString()
+        ).toString()
+    );
+
     yieldPoolState.save();
     return yieldPoolState;
+    log.warning("ending yield pool state add", []);
 }

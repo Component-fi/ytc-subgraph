@@ -25,17 +25,22 @@ type AccruedValue @entity {
 
 type YieldPoolState @entity {
   id: ID!
-  timestamp: BigInt!
+  timestamp: Timestamp!
   ytReserves: BigInt!
   baseReserves: BigInt!
+  spotPrice: BigDecimal!
   pool: YieldPool!
+  accruedValue: AccruedValue!
 }
 
 type PrincipalPoolState @entity {
   id: ID!
-  timestamp: BigInt!
+  timestamp: Timestamp!
   ptReserves: BigInt!
   baseReserves: BigInt!
+  totalSupply: BigInt!
+  spotPrice: BigDecimal!
+  fixedRate: BigDecimal!
   pool: PrincipalPool!
 }
 
@@ -49,7 +54,7 @@ type EntryTransaction @entity {
   gasPrice: BigInt!
   gasLimit: BigInt!
   from: User!
-  timestamp: BigInt!
+  timestamp: Timestamp!
   accruedValue: AccruedValue!
 }
 
@@ -66,15 +71,16 @@ type YieldToken @entity {
   name: String!
   symbol: String!
   decimals: Int!
-  terms: Term! @derivedFrom(field: "yToken")
+  term: Term! @derivedFrom(field: "yToken")
 }
 
 type PrincipalToken @entity {
   id: ID!
+  expiration: BigInt!
   name: String!
   symbol: String!
   decimals: Int!
-  terms: Term! @derivedFrom(field: "pToken")
+  term: Term! @derivedFrom(field: "pToken")
 }
 
 type User @entity {
@@ -98,8 +104,15 @@ type PrincipalPool @entity {
   id: ID!
   pToken: PrincipalToken!
   baseToken: BaseToken!
-  timeStretch: BigInt!
+  unitSeconds: BigInt!
   swapFeePercentage: BigInt!
   address: Bytes!
   states: [PrincipalPoolState!]! @derivedFrom(field: "pool")
+}
+
+type Timestamp @entity {
+  id: ID!
+  principalPoolState: [PrincipalPoolState!]! @derivedFrom(field: "timestamp")
+  yieldPoolState: [YieldPoolState!]! @derivedFrom(field: "timestamp")
+  entryTransactions: [EntryTransaction!]! @derivedFrom(field: "timestamp")
 }

@@ -18,7 +18,7 @@ export const addPrincipalPool = (
 
     principalPool.baseToken = baseToken;
     principalPool.pToken = pToken;
-    principalPool.timeStretch = timeStretch;
+    principalPool.unitSeconds = timeStretch;
     principalPool.swapFeePercentage = swapFeePercentage;
     principalPool.address = Address.fromString(address);
 

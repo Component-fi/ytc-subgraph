@@ -1,6 +1,7 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { EntryTransaction } from "../../generated/schema";
 import { ensureTerm } from "./Term";
+import { ensureTimestamp } from "./Timestamp";
 
 export const ensureEntryTransaction = (
         id: string,
@@ -27,7 +28,7 @@ export const ensureEntryTransaction = (
             entryTransaction.baseTokensSpent = baseTokensSpent;
             entryTransaction.gasPrice = gasPrice;
             entryTransaction.gasLimit = gasLimit;
-            entryTransaction.timestamp = timestamp;
+            entryTransaction.timestamp = ensureTimestamp(timestamp).id;
         }
 
         return entryTransaction;
