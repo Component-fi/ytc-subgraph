@@ -76,7 +76,7 @@ export function handleDeployTranche(call: DeployTrancheCall): void {
     let address: Address = call.outputs.value0;
     let id = address.toHex();
 
-    ensureTerm(id);
+    ensureTerm(id, call.block.timestamp);
 }
 
 export function handleSwapEvent(event: Swap): void {

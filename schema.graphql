@@ -2,6 +2,7 @@ type Term @entity {
   id: ID!
   address: Bytes! #address
   expiration: BigInt!
+  timeStarted: BigInt!
   baseToken: BaseToken!
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "term")
   trancheDecimals: Int!

@@ -50,7 +50,8 @@ const ensurePrincipalToken = (principalTokenAddress: string): PrincipalToken => 
 }
 
 export const ensureTerm = (
-    id: string
+    id: string,
+    timeStarted: BigInt | null = null,
 ): Term => {
     let term = Term.load(id);
     
@@ -59,6 +60,9 @@ export const ensureTerm = (
 
         term = new Term(id);
         term.address = address;
+        if (timeStarted){
+            term.timeStarted = timeStarted;
+        }
         const tranche = ITranche.bind(address);
         term.expiration = tranche.unlockTimestamp();
 
