@@ -64,6 +64,8 @@ type BaseToken @entity {
   symbol: String!
   decimals: Int!
   terms: [Term!]! @derivedFrom(field: "baseToken")
+  yPools: [YieldPool!]! @derivedFrom(field: "baseToken")
+  pPools: [PrincipalPool!]! @derivedFrom(field: "baseToken")
 }
 
 type YieldToken @entity {
@@ -72,6 +74,7 @@ type YieldToken @entity {
   symbol: String!
   decimals: Int!
   term: Term! @derivedFrom(field: "yToken")
+  pool: YieldPool @derivedFrom(field: "yToken")
 }
 
 type PrincipalToken @entity {
@@ -81,6 +84,7 @@ type PrincipalToken @entity {
   symbol: String!
   decimals: Int!
   term: Term! @derivedFrom(field: "pToken")
+  pool: PrincipalPool @derivedFrom(field: "pToken")
 }
 
 type User @entity {
