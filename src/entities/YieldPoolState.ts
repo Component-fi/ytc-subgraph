@@ -51,12 +51,12 @@ export const addYieldPoolState = (
         ).toString()
     );
 
-    let yieldToken = YieldToken.load(tokenAddresses[yIndex].toHexString());
+    let yieldToken = YieldToken.load(yieldPool.yToken);
 
     if (yieldToken){
         yieldPoolState.accruedValue = ensureAccruedValue(
             id,
-            yieldToken.id
+            yieldToken.term
         ).id
     }
 

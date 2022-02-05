@@ -11,9 +11,10 @@ import { ensureUser } from "./entities/User";
 import { ensureAccruedValue } from "./entities/AccruedValue";
 import { Swap } from '../generated/BalancerVault/IVault';
 import { ELEMENT_DEPLOYER } from "./constants";
-import { PrincipalPool, PrincipalPoolState, YieldPool } from "../generated/schema";
+import { PrincipalPool, YieldPool } from "../generated/schema";
 import { addPrincipalPoolState } from "./entities/principalPoolState";
 import { addYieldPoolState } from "./entities/YieldPoolState";
+import { logPrices } from "./entities/Price";
 
 export function handleYieldCompound(call: CompoundCall): void {
     let id = call.transaction.hash.toHex();
@@ -41,6 +42,10 @@ export function handleYieldCompound(call: CompoundCall): void {
 
     let accruedValue = ensureAccruedValue(call.transaction.hash.toHex(), termEntity.id)
     entryTransaction.accruedValue = accruedValue.id;
+
+    logPrices(
+        call.block.timestamp
+    );
 
     entryTransaction.save();
 }
@@ -103,12 +108,17 @@ function handlePrincipalPoolSwap(event: Swap): void {
         timestamp,
         poolId,
     )
+
+    logPrices(
+        timestamp
+    );
 }
 
 function handleYieldPoolSwap(event: Swap): void {
     let poolId = event.params.poolId.toHexString();
     let timestamp = event.block.timestamp;
     let id = timestamp.toString() + poolId;
+    log.warning('Starting to handle yieldpoolswap', []);
 
     addYieldPoolState(
         id,

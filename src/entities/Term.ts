@@ -17,7 +17,7 @@ const ensureBaseToken = (baseTokenAddress: string): BaseToken => {
     return baseToken;
 }
 
-const ensureYieldToken = (yieldTokenAddress: string): YieldToken => {
+const ensureYieldToken = (yieldTokenAddress: string, termId: string | null = null): YieldToken => {
     let yieldToken = YieldToken.load(yieldTokenAddress);
 
     if (!yieldToken){
@@ -26,13 +26,16 @@ const ensureYieldToken = (yieldTokenAddress: string): YieldToken => {
         yieldToken.name = token.name();
         yieldToken.symbol = token.symbol();
         yieldToken.decimals = token.decimals();
+        if (termId){
+            yieldToken.term = termId;
+        }
         yieldToken.save();
     }
 
     return yieldToken;
 }
 
-const ensurePrincipalToken = (principalTokenAddress: string): PrincipalToken => {
+const ensurePrincipalToken = (principalTokenAddress: string, termId: string | null = null): PrincipalToken => {
 
     let principalToken = PrincipalToken.load(principalTokenAddress);
 
@@ -44,6 +47,10 @@ const ensurePrincipalToken = (principalTokenAddress: string): PrincipalToken => 
             principalToken.decimals = token.decimals();
             const principalTokenContract = ITranche.bind(Address.fromString(principalToken.id));
             principalToken.expiration = principalTokenContract.unlockTimestamp();
+
+            if (termId){
+                principalToken.term = termId;
+            }
             principalToken.save();
         }
     return principalToken;
@@ -71,12 +78,10 @@ export const ensureTerm = (
         term.baseToken = bt.id;
 
         let yieldTokenAddress = tranche.interestToken().toHexString();
-        let yt = ensureYieldToken(yieldTokenAddress);
-        term.yToken = yt.id;
+        let yt = ensureYieldToken(yieldTokenAddress, id);
 
         let principaltokenAddress = address.toHexString();
-        let pt = ensurePrincipalToken(principaltokenAddress);
-        term.pToken = pt.id;
+        let pt = ensurePrincipalToken(principaltokenAddress, id);
 
         const trancheContract = ITranche.bind(address);
         const trancheERC20 = ERC20.bind(address);

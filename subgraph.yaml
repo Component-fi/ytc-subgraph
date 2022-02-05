@@ -89,6 +89,12 @@ dataSources:
           file: ./abis/IVault.json
         - name: ConvergentCurvePool
           file: ./abis/ConvergentCurvePool.json
+        - name: ITranche
+          file: ./abis/ITranche.json
+        - name: IWrappedPosition
+          file: ./abis/IWrappedPosition.json
+        - name: EACAggregatorProxy
+          file: ./abis/EACAggregatorProxy.json
       eventHandlers:
         - event: Swap(indexed bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleSwapEvent
@@ -119,6 +125,8 @@ dataSources:
           file: ./abis/IVault.json
         - name: IBasePool
           file: ./abis/IBasePool.json
+        - name: EACAggregatorProxy
+          file: ./abis/EACAggregatorProxy.json
       callHandlers:
         - function: compound(uint8,address,bytes32,uint256,uint256,uint256)
           handler: handleYieldCompound
