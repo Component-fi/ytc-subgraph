@@ -1,4 +1,4 @@
-import { Address, log } from "@graphprotocol/graph-ts"
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import { CreateCall } from '../generated/WeightedPoolFactory/WeightedPoolFactory';
 import { DeployTrancheCall } from '../generated/TrancheFactory/TrancheFactory';
 import { CreateCall as CreateCCCall } from '../generated/ConvergentPoolFactory/ConvergentPoolFactory';
@@ -10,11 +10,12 @@ import { addPrincipalPool } from "./entities/PrincipalPool";
 import { ensureUser } from "./entities/User";
 import { ensureAccruedValue } from "./entities/AccruedValue";
 import { Swap } from '../generated/BalancerVault/IVault';
-import { ELEMENT_DEPLOYER } from "./constants";
-import { PrincipalPool, YieldPool } from "../generated/schema";
-import { addPrincipalPoolState } from "./entities/principalPoolState";
-import { addYieldPoolState } from "./entities/YieldPoolState";
+import { ELEMENT_DEPLOYER, SECONDS_IN_A_DAY } from "./constants";
+import { PrincipalPool, Timestamp, YieldPool } from "../generated/schema";
+import { addPrincipalPoolState, logPrincipalPoolStates } from "./entities/principalPoolState";
+import { addYieldPoolState, logYieldPoolStates } from "./entities/YieldPoolState";
 import { logPrices } from "./entities/Price";
+import { ensureRegistry } from "./entities/Registry";
 
 export function handleYieldCompound(call: CompoundCall): void {
     let id = call.transaction.hash.toHex();
@@ -95,36 +96,50 @@ export function handleSwapEvent(event: Swap): void {
     if (yPool){
         handleYieldPoolSwap(event);
     }
+
+    // Updates once per day, principalPools, yieldPools and prices
+    handleDailyPoolUpdate(event);
     return;
 }
 
 function handlePrincipalPoolSwap(event: Swap): void {
     let poolId = event.params.poolId.toHexString();
     let timestamp = event.block.timestamp;
-    let id = timestamp.toString() + poolId;
 
     addPrincipalPoolState(
-        id,
         timestamp,
         poolId,
     )
-
-    logPrices(
-        timestamp
-    );
 }
 
 function handleYieldPoolSwap(event: Swap): void {
     let poolId = event.params.poolId.toHexString();
     let timestamp = event.block.timestamp;
-    let id = timestamp.toString() + poolId;
     log.warning('Starting to handle yieldpoolswap', []);
 
     addYieldPoolState(
-        id,
         timestamp,
         poolId
     )
+}
+
+function handleDailyPoolUpdate(event: ethereum.Event): void {
+    // first graph the timestamp
+    let timestamp = event.block.timestamp;
+    let registry = ensureRegistry();
+    // now check if yieldPools or principalPools have been updated in 24 hours
+
+    let oneDayAgo = timestamp.minus(BigInt.fromI64(SECONDS_IN_A_DAY));
+
+    if ((oneDayAgo).lt(registry.lastUpdatePrincipalPools)){
+        logPrincipalPoolStates(timestamp);
+    }
+    if ((oneDayAgo).lt(registry.lastUpdateYieldPools)){
+        logYieldPoolStates(timestamp);
+    }
+    if ((oneDayAgo).lt(registry.lastUpdatePriceFeeds)){
+        logPrices(timestamp)
+    }
 }
 
 

@@ -5,14 +5,16 @@ import { IVault } from "../../generated/YieldTokenCompounding/IVault";
 import { BALANCER_VAULT_ADDRESS } from "../constants";
 import { calcSpotPriceYt } from "../helpers/prices";
 import { ensureAccruedValue } from "./AccruedValue";
+import { ensureRegistry } from "./Registry";
 import { ensureTimestamp } from "./Timestamp";
 
 
 export const addYieldPoolState = (
-    id: string,
     timestamp: BigInt,
     poolId: string
 ): YieldPoolState | null => {
+    let id = timestamp.toString() + "-" + poolId;
+
     let yieldPoolState = new YieldPoolState(id);
 
     yieldPoolState.pool = poolId;
@@ -62,4 +64,20 @@ export const addYieldPoolState = (
 
     yieldPoolState.save();
     return yieldPoolState;
+}
+
+export function logYieldPoolStates(timestamp: BigInt): void{
+    let registry = ensureRegistry();
+
+    let yieldPools = registry.yieldPools;
+
+    for (let i = 0; i<yieldPools.length; i++){
+        addYieldPoolState(
+            timestamp,
+            yieldPools[i]
+        )
+    }
+
+    registry.lastUpdateYieldPools = timestamp;
+    registry.save();
 }

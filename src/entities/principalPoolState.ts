@@ -5,13 +5,14 @@ import { PrincipalPool, PrincipalPoolState, PrincipalToken, Term } from "../../g
 import { IVault } from "../../generated/YieldTokenCompounding/IVault";
 import { BALANCER_VAULT_ADDRESS } from "../constants";
 import { calcFixedAPR, calcSpotPricePt } from "../helpers/prices";
+import { ensureRegistry } from "./Registry";
 import { ensureTimestamp } from "./Timestamp";
 
 export const addPrincipalPoolState = (
-    id: string,
     timestamp: BigInt,
     poolId: string,
 ): PrincipalPoolState | null => {
+    let id = timestamp.toString() + "-" + poolId;
 
     let principalPoolState = new PrincipalPoolState(id);
 
@@ -22,7 +23,7 @@ export const addPrincipalPoolState = (
     let principalPool = PrincipalPool.load(poolId);
 
     if (!principalPool){
-        log.error("Could not get principal pool state as prinicpal pool {} was not found", [poolId]);
+        log.error("Could not get principal pool state as principal pool {} was not found", [poolId]);
         return null
     }
 
@@ -76,4 +77,20 @@ export const addPrincipalPoolState = (
 
     principalPoolState.save();
     return principalPoolState;
+}
+
+export function logPrincipalPoolStates(timestamp: BigInt): void{
+    let registry = ensureRegistry();
+
+    let principalPools = registry.principalPools;
+
+    for (let i = 0; i<principalPools.length; i++){
+        addPrincipalPoolState(
+            timestamp,
+            principalPools[i]
+        )
+    }
+
+    registry.lastUpdatePrincipalPools = timestamp;
+    registry.save();
 }

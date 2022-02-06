@@ -1,6 +1,7 @@
 import { Address, BigInt, log } from "@graphprotocol/graph-ts";
 import { BaseToken, YieldPool, YieldToken } from "../../generated/schema";
 import { WeightedPool } from "../../generated/WeightedPoolFactory/WeightedPool";
+import { ensureRegistry } from "./Registry";
 
 export const addYieldPool = (
     address: string,
@@ -36,8 +37,13 @@ export const addYieldPool = (
     yieldPool.yToken = tokens[ytIndex].toHexString();
     yieldPool.yTokenWeight = weights[ytIndex];
 
-
     yieldPool.save();
+
+    let registry = ensureRegistry();
+    let yieldPools: string[] = registry.yieldPools;
+    yieldPools.push(yieldPool.id);
+    registry.yieldPools = yieldPools;
+    registry.save()
 
     return yieldPool;
 }

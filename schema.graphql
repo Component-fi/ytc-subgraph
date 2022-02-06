@@ -1,3 +1,21 @@
+type Registry @entity {
+  id: ID!
+  terms: [Term!]!
+  lastUpdateTerms: BigInt!
+  yieldPools: [YieldPool!]!
+  lastUpdateYieldPools: BigInt!
+  principalPools: [PrincipalPool!]!
+  lastUpdatePrincipalPools: BigInt!
+  baseTokens: [BaseToken!]!
+  lastUpdateBaseTokens: BigInt!
+  principalTokens: [PrincipalToken!]!
+  lastUpdatePrincipalTokens: BigInt!
+  yieldTokens: [YieldToken!]!
+  lastUpdateYieldTokens: BigInt!
+  priceFeeds: [PriceFeed!]!
+  lastUpdatePriceFeeds: BigInt!
+}
+
 type Term @entity {
   id: ID!
   address: Bytes! #address
@@ -9,12 +27,6 @@ type Term @entity {
   wrappedDecimals: Int!
   yToken: YieldToken! @derivedFrom(field: "term")
   pToken: PrincipalToken! @derivedFrom(field: "term")
-}
-
-type TermList @entity {
-  id: ID!
-  activeTerms: [Term!]!
-  lastUpdate: BigInt!
 }
 
 type AccruedValue @entity {

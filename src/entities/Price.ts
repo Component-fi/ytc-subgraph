@@ -2,6 +2,8 @@ import { Address, BigInt, log } from "@graphprotocol/graph-ts"
 import { Price, PriceFeed } from "../../generated/schema";
 import { FeedRegistry } from "../../generated/BalancerVault/FeedRegistry";
 import { ensureTimestamp } from "./Timestamp";
+import { ensureRegistry } from "./Registry";
+import { SECONDS_IN_A_DAY } from "../constants";
 
 // TODO replace with this https://docs.chain.link/docs/feed-registry/#:~:text=The%20Chainlink%20Feed%20Registry%20is,mapping%20of%20assets%20to%20feeds.&text=They%20enable%20smart%20contracts%20to,token%20address%20on%20a%20network.
 
@@ -42,26 +44,33 @@ let btcFeed = new FEED(
 FEEDS_INFO.set("ETHUSD", ethFeed);
 FEEDS_INFO.set("BTCUSD", btcFeed);
 
-
 export function logPrices(timestamp: BigInt): void {
-    for(let i = 0; i < FEED_NAMES.length; i++){
-        let name = FEED_NAMES[i];
+    let registry = ensureRegistry();
 
-        addPrice(name, timestamp);
+    let feeds = registry.priceFeeds;
+
+    for(let i = 0; i < feeds.length; i++){
+        let feedId = feeds[i];
+
+        addPrice(feedId, timestamp);
     }
+
+    registry.lastUpdatePriceFeeds = timestamp;
+    registry.save();
 }
 
 function addPrice(feedId: string, timestamp: BigInt): Price {
     let feed = ensurePriceFeed(feedId);
 
-    const feedContract = FeedRegistry.bind(Address.fromString(FEED_REGISTRY));
+    const feedRegistry = FeedRegistry.bind(Address.fromString(FEED_REGISTRY));
 
     let price = new Price(feedId + timestamp.toString())
 
     let baseAddress = Address.fromString(feed.tokenAddress.toHexString());
     let quoteAddress = Address.fromString(USD_DENOMINATION);
     
-    let priceResult = feedContract.try_latestAnswer(
+    log.warning("Getting feed from", [baseAddress.toHexString(), quoteAddress.toHexString()])
+    let priceResult = feedRegistry.try_latestAnswer(
         baseAddress,
         quoteAddress
     )
@@ -72,7 +81,7 @@ function addPrice(feedId: string, timestamp: BigInt): Price {
     }
 
 
-    let decimalsResult = feedContract.try_decimals(
+    let decimalsResult = feedRegistry.try_decimals(
         baseAddress,
         quoteAddress
     )
@@ -101,7 +110,14 @@ const ensurePriceFeed = (id: string): PriceFeed => {
         feed.numeratorName = feedFields.numeratorName;
         
         feed.tokenAddress = Address.fromString(feedFields.tokenAddress);
+
+        feed.save();
+
+        let registry = ensureRegistry();
+        let priceFeeds: string[] = registry.priceFeeds;
+        priceFeeds.push(feed.id);
+        registry.priceFeeds = priceFeeds;
+        registry.save();
     }
-    feed.save();
     return feed;
 }

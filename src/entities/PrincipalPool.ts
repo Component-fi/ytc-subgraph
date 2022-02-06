@@ -1,6 +1,7 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { ConvergentCurvePool } from "../../generated/ConvergentPoolFactory/ConvergentCurvePool";
 import { PrincipalPool, PrincipalToken } from "../../generated/schema";
+import { ensureRegistry } from "./Registry";
 
 export const addPrincipalPool = (
     address: string,
@@ -19,15 +20,17 @@ export const addPrincipalPool = (
     principalPool.baseToken = baseToken;
     principalPool.pToken = pToken;
     
-    let pTokenEntry = PrincipalToken.load(pToken);
-    if (pTokenEntry){
-        principalPool.expiration = pTokenEntry.expiration;
-    }
-
     principalPool.unitSeconds = timeStretch;
     principalPool.swapFeePercentage = swapFeePercentage;
     principalPool.address = Address.fromString(address);
 
     principalPool.save();
+
+    let registry = ensureRegistry();
+    let principalPools: string[] = registry.principalPools;
+    principalPools.push(principalPool.id);
+    registry.principalPools = principalPools;
+    registry.save();
+
     return principalPool;
 }

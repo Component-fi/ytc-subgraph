@@ -1,7 +1,8 @@
-import { Address, BigInt, log } from "@graphprotocol/graph-ts";
-import { BaseToken, PrincipalToken, Term, TermList, YieldToken } from "../../generated/schema";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { BaseToken, PrincipalToken, Term, YieldToken } from "../../generated/schema";
 import { ERC20 } from "../../generated/YieldTokenCompounding/ERC20";
 import { ITranche } from "../../generated/YieldTokenCompounding/ITranche";
+import { ensureRegistry } from "./Registry";
 
 const ensureBaseToken = (baseTokenAddress: string): BaseToken => {
     let baseToken = BaseToken.load(baseTokenAddress);
@@ -12,7 +13,14 @@ const ensureBaseToken = (baseTokenAddress: string): BaseToken => {
         baseToken.name = token.name();
         baseToken.symbol = token.symbol();
         baseToken.decimals = token.decimals();
+
         baseToken.save();
+
+        let registry = ensureRegistry();
+        let baseTokens: string[] = registry.baseTokens;
+        baseTokens.push(baseToken.id);
+        registry.baseTokens = baseTokens;
+        registry.save();
     }
     return baseToken;
 }
@@ -30,6 +38,12 @@ const ensureYieldToken = (yieldTokenAddress: string, termId: string | null = nul
             yieldToken.term = termId;
         }
         yieldToken.save();
+
+        let registry = ensureRegistry();
+        let yieldTokens: string[] = registry.yieldTokens;
+        yieldTokens.push(yieldToken.id);
+        registry.yieldTokens = yieldTokens;
+        registry.save()
     }
 
     return yieldToken;
@@ -51,7 +65,14 @@ const ensurePrincipalToken = (principalTokenAddress: string, termId: string | nu
             if (termId){
                 principalToken.term = termId;
             }
+
             principalToken.save();
+
+            let registry = ensureRegistry();
+            let principalTokens: string[] = registry.principalTokens;
+            principalTokens.push(principalToken.id);
+            registry.principalTokens = principalTokens;
+            registry.save();
         }
     return principalToken;
 }
@@ -97,17 +118,11 @@ export const ensureTerm = (
 
         term.save()
 
-        let termList = TermList.load("0");
-
-        if (!termList){
-            termList = new TermList("0");
-            termList.lastUpdate = new BigInt(0);
-        } 
-
-        let activeTerms: string[] = termList.activeTerms;
-        activeTerms.push(term.id);
-        termList.activeTerms = activeTerms;
-        termList.save();
+        let registry = ensureRegistry()
+        let terms: string[] = registry.terms;
+        terms.push(term.id);
+        registry.terms = terms;
+        registry.save();
     }
 
     return term;
