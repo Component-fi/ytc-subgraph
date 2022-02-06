@@ -1,11 +1,13 @@
 import { Address, BigInt, log } from "@graphprotocol/graph-ts"
 import { Price, PriceFeed } from "../../generated/schema";
-import { EACAggregatorProxy } from "../../generated/BalancerVault/EACAggregatorProxy";
+import { FeedRegistry } from "../../generated/BalancerVault/FeedRegistry";
 import { ensureTimestamp } from "./Timestamp";
 
 // TODO replace with this https://docs.chain.link/docs/feed-registry/#:~:text=The%20Chainlink%20Feed%20Registry%20is,mapping%20of%20assets%20to%20feeds.&text=They%20enable%20smart%20contracts%20to,token%20address%20on%20a%20network.
 
-const FEED_REGISTRY = "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf"
+const FEED_REGISTRY = "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf";
+const USD_DENOMINATION = "0x0000000000000000000000000000000000000348";
+const ETH_DENOMINATION = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 
 const FEED_NAMES = [
     "ETHUSD",   
@@ -16,11 +18,11 @@ class FEED {
     constructor(
         public numeratorName: string,
         public denominatorName: string,
-        public priceFeed: string
+        public tokenAddress: string
     ){
         numeratorName = numeratorName;
         denominatorName = denominatorName;
-        priceFeed = priceFeed
+        tokenAddress = tokenAddress;
     }
 }
 let FEEDS_INFO = new Map<string, FEED>();
@@ -28,13 +30,13 @@ let FEEDS_INFO = new Map<string, FEED>();
 let ethFeed = new FEED(
     "Ether",
     "United States Dollar",
-    "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
+    "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 )
 
 let btcFeed = new FEED(
     "Bitcoin",
     "United States Dollar",
-    "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c"
+    "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
 )
 
 FEEDS_INFO.set("ETHUSD", ethFeed);
@@ -52,16 +54,36 @@ export function logPrices(timestamp: BigInt): void {
 function addPrice(feedId: string, timestamp: BigInt): Price {
     let feed = ensurePriceFeed(feedId);
 
-    const address: Address = Address.fromString(feed.priceFeed.toHexString());
-
-    const feedContract = EACAggregatorProxy.bind(address);
+    const feedContract = FeedRegistry.bind(Address.fromString(FEED_REGISTRY));
 
     let price = new Price(feedId + timestamp.toString())
 
-    price.price = feedContract.latestAnswer()
-    price.decimals = feedContract.decimals()
+    let baseAddress = Address.fromString(feed.tokenAddress.toHexString());
+    let quoteAddress = Address.fromString(USD_DENOMINATION);
+    
+    let priceResult = feedContract.try_latestAnswer(
+        baseAddress,
+        quoteAddress
+    )
+
+    if (!priceResult.reverted){
+        log.warning("price, {}", [priceResult.value.toString()])
+        price.price = priceResult.value;
+    }
+
+
+    let decimalsResult = feedContract.try_decimals(
+        baseAddress,
+        quoteAddress
+    )
+
+    if (!decimalsResult.reverted){
+        log.warning("decimals, {}", [decimalsResult.value.toString()])
+        price.decimals = decimalsResult.value;
+    }
     price.timestamp = ensureTimestamp(timestamp).id;
     price.timestampId = timestamp;
+    price.priceFeed = feedId;
 
     price.save();
     return price;
@@ -77,9 +99,8 @@ const ensurePriceFeed = (id: string): PriceFeed => {
 
         feed.denominatorName = feedFields.denominatorName;
         feed.numeratorName = feedFields.numeratorName;
-        log.warning("this is the address {}", [feedFields.priceFeed]);
         
-        feed.priceFeed = Address.fromString(feedFields.priceFeed);
+        feed.tokenAddress = Address.fromString(feedFields.tokenAddress);
     }
     feed.save();
     return feed;

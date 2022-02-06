@@ -124,21 +124,31 @@ type Timestamp @entity {
   principalPoolState: [PrincipalPoolState!]! @derivedFrom(field: "timestamp")
   yieldPoolState: [YieldPoolState!]! @derivedFrom(field: "timestamp")
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "timestamp")
+  prices: [Price!]! @derivedFrom(field: "timestamp")
+  day: Day!
 }
 
 type PriceFeed @entity {
   id: ID!
   numeratorName: String!
   denominatorName: String!
-  priceFeed: Bytes!
+  tokenAddress: Bytes!
   prices: [Price!]! @derivedFrom(field: "priceFeed")
 }
 
 type Price @entity {
   id: ID!
   priceFeed: PriceFeed!
-  price: BigInt!
-  decimals: Int!
+  price: BigInt
+  decimals: Int
   timestamp: Timestamp!
   timestampId: BigInt!
+}
+
+type Day @entity {
+  id: ID!
+  year: Int!
+  month: Int!
+  day: Int!
+  timestamps: [Timestamp!]! @derivedFrom(field: "day")
 }
