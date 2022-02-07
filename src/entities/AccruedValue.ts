@@ -11,18 +11,14 @@ export const ensureAccruedValue = (
         // add a new accrued value
         let accruedValue = AccruedValue.load(id);
         if (!accruedValue){
-            log.warning('No loading accrued value', [])
             accruedValue = new AccruedValue(id);
 
             let address: Address = Address.fromString(termId);
             const trancheContract = ITranche.bind(address);
-            log.warning('getting position', [])
             const wrappedPosition = trancheContract.position();
             const wrappedPositionContract = IWrappedPosition.bind(wrappedPosition);
-            log.warning('getting total supply', [])
             const trancheSupply = trancheContract.totalSupply();
             let interestSupply = trancheContract.interestSupply();
-            log.warning('getting balance of the underlying', [])
             let wrappedSupply = wrappedPositionContract.balanceOfUnderlying(address);
 
             accruedValue.trancheSupply = trancheSupply;

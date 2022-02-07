@@ -69,14 +69,12 @@ function addPrice(feedId: string, timestamp: BigInt): Price {
     let baseAddress = Address.fromString(feed.tokenAddress.toHexString());
     let quoteAddress = Address.fromString(USD_DENOMINATION);
     
-    log.warning("Getting feed from", [baseAddress.toHexString(), quoteAddress.toHexString()])
     let priceResult = feedRegistry.try_latestAnswer(
         baseAddress,
         quoteAddress
     )
 
     if (!priceResult.reverted){
-        log.warning("price, {}", [priceResult.value.toString()])
         price.price = priceResult.value;
     }
 
@@ -87,7 +85,6 @@ function addPrice(feedId: string, timestamp: BigInt): Price {
     )
 
     if (!decimalsResult.reverted){
-        log.warning("decimals, {}", [decimalsResult.value.toString()])
         price.decimals = decimalsResult.value;
     }
     price.timestamp = ensureTimestamp(timestamp).id;

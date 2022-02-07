@@ -10,12 +10,15 @@ import { addPrincipalPool } from "./entities/PrincipalPool";
 import { ensureUser } from "./entities/User";
 import { ensureAccruedValue } from "./entities/AccruedValue";
 import { Swap } from '../generated/BalancerVault/IVault';
-import { ELEMENT_DEPLOYER, SECONDS_IN_A_DAY } from "./constants";
+import { ELEMENT_DEPLOYER, SECONDS_IN_AN_HOUR, SECONDS_IN_A_DAY } from "./constants";
 import { PrincipalPool, Timestamp, YieldPool } from "../generated/schema";
 import { addPrincipalPoolState, logPrincipalPoolStates } from "./entities/principalPoolState";
 import { addYieldPoolState, logYieldPoolStates } from "./entities/YieldPoolState";
 import { logPrices } from "./entities/Price";
 import { ensureRegistry } from "./entities/Registry";
+import { initialize } from "./initialize";
+
+initialize();
 
 export function handleYieldCompound(call: CompoundCall): void {
     let id = call.transaction.hash.toHex();
@@ -115,7 +118,6 @@ function handlePrincipalPoolSwap(event: Swap): void {
 function handleYieldPoolSwap(event: Swap): void {
     let poolId = event.params.poolId.toHexString();
     let timestamp = event.block.timestamp;
-    log.warning('Starting to handle yieldpoolswap', []);
 
     addYieldPoolState(
         timestamp,
@@ -130,84 +132,15 @@ function handleDailyPoolUpdate(event: ethereum.Event): void {
     // now check if yieldPools or principalPools have been updated in 24 hours
 
     let oneDayAgo = timestamp.minus(BigInt.fromI64(SECONDS_IN_A_DAY));
+    let oneHourAgo = timestamp.minus(BigInt.fromI64(SECONDS_IN_AN_HOUR));
 
-    if ((oneDayAgo).lt(registry.lastUpdatePrincipalPools)){
+    if ((oneDayAgo).gt(registry.lastUpdatePrincipalPools)){
         logPrincipalPoolStates(timestamp);
     }
-    if ((oneDayAgo).lt(registry.lastUpdateYieldPools)){
+    if ((oneDayAgo).gt(registry.lastUpdateYieldPools)){
         logYieldPoolStates(timestamp);
     }
-    if ((oneDayAgo).lt(registry.lastUpdatePriceFeeds)){
+    if ((oneHourAgo).gt(registry.lastUpdatePriceFeeds)){
         logPrices(timestamp)
     }
 }
-
-
-// export function handleUpdateAccrual(block: ethereum.Block): void {
-
-//     let timestamp = block.timestamp;
-
-//     let secondsInDay: BigInt = BigInt.fromI32(86400);
-//     const termList = TermList.load("0");
-
-//     if (!termList){
-//         return;
-//     }
-//     log.debug("termlist: {}", [termList.id.toString()]);
-
-//     // If it's been longer than a day since the last update
-//     if (timestamp.minus(termList.lastUpdate).gt(secondsInDay)){
-//         log.debug("timestamp: {}", [timestamp.toString()]);
-//         log.debug("termlist timestamp: {}", [termList.lastUpdate.toString()]);
-//         // for each term
-//         let terms = termList.activeTerms;
-//         log.debug("first term: {}", [termList.activeTerms[0]]);
-
-//         for(let i = 0; i < terms.length; i++){
-//             let term = terms[i];
-//             log.debug("Term loop: {}", [term])
-//             const termEntity = Term.load(term);
-
-//             if (!termEntity){
-//                 continue;
-//             }
-
-//             // if the term is now expired, remove it from the active termList
-//             if (timestamp.gt(termEntity.expiration)){
-//                 log.debug("Term expired: {}", [term])
-//                 // remove it from the active term list
-//             } else { 
-//                 // add a new amccrued value
-//                 let address: Address = Address.fromString(termEntity.id);
-//                 const trancheContract = ITranche.bind(address);
-//                 const wrappedPosition = trancheContract.position();
-//                 const wrappedPositionContract = IWrappedPosition.bind(wrappedPosition);
-//                 const trancheSupply = trancheContract.totalSupply();
-//                 let interestSupply = trancheContract.interestSupply();
-//                 let wrappedSupply = wrappedPositionContract.balanceOfUnderlying(address);
-
-
-//                 log.debug(
-//                     "term: {}, trancheSupply: {}, wrappedSupply: {}, interestSupply: {}",
-//                     [
-//                         term,
-//                         trancheSupply.toString(),
-//                         wrappedSupply.toString(),
-//                         interestSupply.toString()
-//                     ]
-//                 )
-
-
-//                 const accruedValueEntity = new AccruedValue(timestamp.toString() + term);
-//                 accruedValueEntity.timestamp = timestamp;
-//                 accruedValueEntity.trancheSupply = trancheSupply;
-//                 accruedValueEntity.wrappedSupply = wrappedSupply;
-//                 accruedValueEntity.ytSupply = interestSupply;
-//                 accruedValueEntity.save();
-//             }
-//         }
-
-//         termList.lastUpdate = timestamp;
-//         termList.save();
-//     }
-// }
