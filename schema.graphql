@@ -1,24 +1,32 @@
 type Registry @entity {
+  "The registry is an all purpose object to provide a list of all entities of a certain type during indexing"
   id: ID!
   terms: [Term!]!
+  "Used for periodic updates that use terms as reference"
   lastUpdateTerms: BigInt!
   yieldPools: [YieldPool!]!
+  "Used for periodic updates that use yield pools as reference"
   lastUpdateYieldPools: BigInt!
   principalPools: [PrincipalPool!]!
+  "Used for periodic updates that use principal pools as reference"
   lastUpdatePrincipalPools: BigInt!
   baseTokens: [BaseToken!]!
+  "Used for periodic updates that use baseTokens as reference"
   lastUpdateBaseTokens: BigInt!
   principalTokens: [PrincipalToken!]!
+  "Used for periodic updates that use principalTokens as reference"
   lastUpdatePrincipalTokens: BigInt!
   yieldTokens: [YieldToken!]!
+  "Used for periodic updates that use yieldTokens as reference"
   lastUpdateYieldTokens: BigInt!
   priceFeeds: [PriceFeed!]!
+  "Used for periodic updates that use priceFeeds as reference"
   lastUpdatePriceFeeds: BigInt!
 }
 
 type Term @entity {
   id: ID!
-  address: Bytes! #address
+  address: Bytes!
   expiration: BigInt!
   timeStarted: BigInt!
   baseToken: BaseToken!
@@ -30,6 +38,7 @@ type Term @entity {
 }
 
 type AccruedValue @entity {
+  "Values representing accrued interest backing a yield token"
   id: ID!
   trancheSupply: BigInt!
   ytSupply: BigInt!
@@ -37,8 +46,11 @@ type AccruedValue @entity {
 }
 
 type YieldPoolState @entity {
+  "A snapshot of the state of a yield pool"
   id: ID!
+  "Timestamp object used for finding multiple states at one timestamp"
   timestamp: Timestamp!
+  "Timestamp int used for sorting"
   timestampId: BigInt!
   ytReserves: BigInt!
   baseReserves: BigInt!
@@ -49,7 +61,9 @@ type YieldPoolState @entity {
 
 type PrincipalPoolState @entity {
   id: ID!
+  "Timestamp object used for finding multiple states at one timestamp"
   timestamp: Timestamp!
+  "Timestamp int used for sorting"
   timestampId: BigInt!
   ptReserves: BigInt!
   baseReserves: BigInt!
@@ -60,6 +74,7 @@ type PrincipalPoolState @entity {
 }
 
 type EntryTransaction @entity {
+  "A yield token compounding transaction"
   id: ID!
   numberOfCompounds: Int!
   term: Term!
@@ -67,9 +82,12 @@ type EntryTransaction @entity {
   baseTokensSpent: BigInt!
   yieldTokensReceived: BigInt!
   gasPrice: BigInt!
+  "This unfortunately is the gas limit not actual gas used, as that is not yet supported by the Graph"
   gasLimit: BigInt!
   from: User!
+  "Timestamp object used for finding multiple states at one timestamp"
   timestamp: Timestamp!
+  "Timestamp int used for sorting"
   timestampId: BigInt!
   accruedValue: AccruedValue!
 }
@@ -137,13 +155,16 @@ type Timestamp @entity {
   yieldPoolState: [YieldPoolState!]! @derivedFrom(field: "timestamp")
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "timestamp")
   prices: [Price!]! @derivedFrom(field: "timestamp")
+  "The day entity allows for grouping timestamps by day in a query"
   day: Day!
+  hour: Hour!
 }
 
 type PriceFeed @entity {
   id: ID!
   numeratorName: String!
   denominatorName: String!
+  "The base token address, quote address is USD"
   tokenAddress: Bytes!
   prices: [Price!]! @derivedFrom(field: "priceFeed")
 }
@@ -153,15 +174,38 @@ type Price @entity {
   priceFeed: PriceFeed!
   price: BigInt
   decimals: Int
+  "Timestamp object used for finding multiple states at one timestamp"
   timestamp: Timestamp!
+  "Timestamp int used for sorting"
   timestampId: BigInt!
 }
 
 type Day @entity {
+  "Day entity allows for grouping timestamps within a UTC day"
   id: ID!
+  "Int value of the year"
   year: Int!
+  "Int value of the month 1-12"
   month: Int!
+  "Int value of the day 1-31"
   day: Int!
+  "The first timestamp in the day entity, this is used for sorting as we can't do nested sorts"
   firstTimestamp: BigInt!
   timestamps: [Timestamp!]! @derivedFrom(field: "day")
+}
+
+type Hour @entity {
+  "Hour entity allows for grouping timestamps within a UTC hour"
+  id: ID!
+  "Int value of the year"
+  year: Int!
+  "Int value of the month 1-12"
+  month: Int!
+  "Int value of the day 1-31"
+  day: Int!
+  "Int value of the hour 1-24"
+  hour: Int!
+  "The first timestamp in the hour entity, this is used for sorting as we can't do nested sorts"
+  firstTimestamp: BigInt!
+  timestamps: [Timestamp!]! @derivedFrom(field: "hour")
 }

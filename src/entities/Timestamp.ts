@@ -1,6 +1,7 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import { Timestamp } from "../../generated/schema"
 import { ensureDay } from "./Day";
+import { ensureHour } from "./Hour";
 
 export const ensureTimestamp = (timestamp: BigInt): Timestamp => {
     let timestampEntity = Timestamp.load(timestamp.toString())
@@ -9,6 +10,7 @@ export const ensureTimestamp = (timestamp: BigInt): Timestamp => {
         timestampEntity = new Timestamp(timestamp.toString());
 
         timestampEntity.day = ensureDay(timestamp).id;
+        timestampEntity.hour = ensureHour(timestamp).id;
 
         timestampEntity.save();
     }
