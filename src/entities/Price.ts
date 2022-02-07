@@ -3,18 +3,7 @@ import { Price, PriceFeed } from "../../generated/schema";
 import { FeedRegistry } from "../../generated/BalancerVault/FeedRegistry";
 import { ensureTimestamp } from "./Timestamp";
 import { ensureRegistry } from "./Registry";
-import { SECONDS_IN_A_DAY } from "../constants";
-
-// TODO replace with this https://docs.chain.link/docs/feed-registry/#:~:text=The%20Chainlink%20Feed%20Registry%20is,mapping%20of%20assets%20to%20feeds.&text=They%20enable%20smart%20contracts%20to,token%20address%20on%20a%20network.
-
-const FEED_REGISTRY = "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf";
-const USD_DENOMINATION = "0x0000000000000000000000000000000000000348";
-const ETH_DENOMINATION = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-
-const FEED_NAMES = [
-    "ETHUSD",   
-    "BTCUSD"
-]
+import { FEED_NAMES, FEED_REGISTRY, USD_DENOMINATION } from "../constants";
 
 class FEED {
     constructor(
@@ -27,6 +16,7 @@ class FEED {
         tokenAddress = tokenAddress;
     }
 }
+
 let FEEDS_INFO = new Map<string, FEED>();
 
 let ethFeed = new FEED(
@@ -43,6 +33,7 @@ let btcFeed = new FEED(
 
 FEEDS_INFO.set("ETHUSD", ethFeed);
 FEEDS_INFO.set("BTCUSD", btcFeed);
+
 
 export function logPrices(timestamp: BigInt): void {
     let registry = ensureRegistry();
@@ -117,4 +108,10 @@ const ensurePriceFeed = (id: string): PriceFeed => {
         registry.save();
     }
     return feed;
+}
+
+export function addPriceFeeds(): void {
+    for (let i = 0; i<FEED_NAMES.length; i++){
+        ensurePriceFeed(FEED_NAMES[i]);
+    }
 }

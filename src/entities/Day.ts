@@ -14,6 +14,7 @@ export function ensureDay(timestamp: BigInt): Day {
     if (!dayEntity){
         dayEntity = new Day(dateString);
 
+        dayEntity.firstTimestamp = timestamp;
         dayEntity.day = date.getUTCDate();
         dayEntity.month = date.getUTCMonth();
         dayEntity.year = date.getUTCFullYear();

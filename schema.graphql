@@ -162,5 +162,6 @@ type Day @entity {
   year: Int!
   month: Int!
   day: Int!
+  firstTimestamp: BigInt!
   timestamps: [Timestamp!]! @derivedFrom(field: "day")
 }
