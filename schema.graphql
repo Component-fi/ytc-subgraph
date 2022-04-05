@@ -151,8 +151,8 @@ type PrincipalPool @entity {
 
 type Timestamp @entity {
   id: ID!
-  principalPoolState: [PrincipalPoolState!]! @derivedFrom(field: "timestamp")
-  yieldPoolState: [YieldPoolState!]! @derivedFrom(field: "timestamp")
+  principalPoolStates: [PrincipalPoolState!]! @derivedFrom(field: "timestamp")
+  yieldPoolStates: [YieldPoolState!]! @derivedFrom(field: "timestamp")
   entryTransactions: [EntryTransaction!]! @derivedFrom(field: "timestamp")
   prices: [Price!]! @derivedFrom(field: "timestamp")
   "The day entity allows for grouping timestamps by day in a query"
@@ -184,11 +184,12 @@ type Day @entity {
   "Day entity allows for grouping timestamps within a UTC day"
   id: ID!
   "Int value of the year"
-  year: Int!
+  yearInt: Int!
   "Int value of the month 1-12"
-  month: Int!
+  monthInt: Int!
   "Int value of the day 1-31"
-  day: Int!
+  dayInt: Int!
+  hours: [Hour!]! @derivedFrom(field: "day")
   "The first timestamp in the day entity, this is used for sorting as we can't do nested sorts"
   firstTimestamp: BigInt!
   timestamps: [Timestamp!]! @derivedFrom(field: "day")
@@ -198,14 +199,32 @@ type Hour @entity {
   "Hour entity allows for grouping timestamps within a UTC hour"
   id: ID!
   "Int value of the year"
-  year: Int!
+  yearInt: Int!
   "Int value of the month 1-12"
-  month: Int!
+  monthInt: Int!
   "Int value of the day 1-31"
-  day: Int!
+  dayInt: Int!
+  "Day enitty"
+  day: Day!
   "Int value of the hour 1-24"
-  hour: Int!
+  hourInt: Int!
   "The first timestamp in the hour entity, this is used for sorting as we can't do nested sorts"
   firstTimestamp: BigInt!
   timestamps: [Timestamp!]! @derivedFrom(field: "hour")
+}
+
+type SwapTransaction @entity {
+  id: ID!
+  timestamp: Timestamp!
+  timestampId: BigInt!
+  amountIn: BigInt!
+  amountOut: BigInt!
+  tokenInAddress: Bytes!
+  tokenOutAddress: Bytes!
+  yieldPool: YieldPool
+  principalPool: PrincipalPool
+}
+
+type PrincipalSwapTransaction @entity {
+  id: ID!
 }

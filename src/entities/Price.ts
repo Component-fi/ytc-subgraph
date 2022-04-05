@@ -36,6 +36,7 @@ FEEDS_INFO.set("BTCUSD", btcFeed);
 
 
 export function logPrices(timestamp: BigInt): void {
+    log.warning("Logging prices", [timestamp.toString()])
     let registry = ensureRegistry();
 
     let feeds = registry.priceFeeds;
@@ -52,6 +53,7 @@ export function logPrices(timestamp: BigInt): void {
 
 function addPrice(feedId: string, timestamp: BigInt): Price {
     let feed = ensurePriceFeed(feedId);
+    log.warning("Trying to add price {}", [feedId + timestamp.toString()])
 
     const feedRegistry = FeedRegistry.bind(Address.fromString(FEED_REGISTRY));
 
@@ -81,6 +83,8 @@ function addPrice(feedId: string, timestamp: BigInt): Price {
     price.timestamp = ensureTimestamp(timestamp).id;
     price.timestampId = timestamp;
     price.priceFeed = feedId;
+
+    log.warning("Adding a price {}", [feedId + timestamp.toString()])
 
     price.save();
     return price;

@@ -1,3 +1,5 @@
+import { log } from "@graphprotocol/graph-ts";
+
 const ONE_YEAR_IN_SECONDS = 31560000;
 
 export function calcFixedAPR(
@@ -37,5 +39,6 @@ export function calcSpotPriceYt(
   baseReserves: string,
   ytReserves: string
 ): number {
+  log.warning("About to divide {} by {}", [baseReserves, ytReserves]);
   return parseFloat(baseReserves) / parseFloat(ytReserves);
 }

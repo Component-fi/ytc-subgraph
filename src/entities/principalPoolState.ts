@@ -14,6 +14,8 @@ export const addPrincipalPoolState = (
 ): PrincipalPoolState | null => {
     let id = timestamp.toString() + "-" + poolId;
 
+    log.warning("Trying to add principal pool state {}", [id]);
+
     let principalPoolState = new PrincipalPoolState(id);
 
     principalPoolState.pool = poolId;
@@ -76,6 +78,7 @@ export const addPrincipalPoolState = (
     }
 
     principalPoolState.save();
+    log.warning("Added principal pool state {}", [id]);
     return principalPoolState;
 }
 
@@ -83,6 +86,8 @@ export function logPrincipalPoolStates(timestamp: BigInt): void{
     let registry = ensureRegistry();
 
     let principalPools = registry.principalPools;
+
+    log.warning("About to add principal pool state", [])
 
     for (let i = 0; i<principalPools.length; i++){
         addPrincipalPoolState(

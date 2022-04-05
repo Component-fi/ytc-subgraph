@@ -1,5 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { Hour } from "../../generated/schema";
+import { ensureDay } from "./Day";
 
 export function ensureHour(timestamp: BigInt): Hour {
 
@@ -16,10 +17,11 @@ export function ensureHour(timestamp: BigInt): Hour {
         hourEntity = new Hour(dateString);
 
         hourEntity.firstTimestamp = timestamp;
-        hourEntity.hour = hour;
-        hourEntity.day = date.getUTCDate();
-        hourEntity.month = date.getUTCMonth();
-        hourEntity.year = date.getUTCFullYear();
+        hourEntity.day = ensureDay(timestamp).id;
+        hourEntity.hourInt = hour;
+        hourEntity.dayInt = date.getUTCDate();
+        hourEntity.monthInt = date.getUTCMonth();
+        hourEntity.yearInt = date.getUTCFullYear();
         hourEntity.save();
     }
 

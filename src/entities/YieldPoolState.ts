@@ -15,11 +15,15 @@ export const addYieldPoolState = (
 ): YieldPoolState | null => {
     let id = timestamp.toString() + "-" + poolId;
 
+    log.warning("Trying to add yield pool state {}", [id]);
+
     let yieldPoolState = new YieldPoolState(id);
 
     yieldPoolState.pool = poolId;
     yieldPoolState.timestamp = ensureTimestamp(timestamp).id;
     yieldPoolState.timestampId = timestamp;
+
+    log.warning("About to load yield pool", [])
 
 
     let yieldPool  = YieldPool.load(poolId);
@@ -29,12 +33,15 @@ export const addYieldPoolState = (
         return null;
     }
 
+    log.warning("About to bind to balancer vault", [])
+
     let balancerVault = IVault.bind(Address.fromString(BALANCER_VAULT_ADDRESS));
     let tokens = balancerVault.getPoolTokens(Bytes.fromHexString(poolId) as Bytes);
 
     let tokenAddresses = tokens.value0;
     let balances = tokens.value1;
 
+    log.warning("About to order the indexes", [])
 
     let baseIndex = 0;
     let yIndex = 1;
@@ -46,12 +53,15 @@ export const addYieldPoolState = (
     yieldPoolState.ytReserves = balances[yIndex];
     yieldPoolState.baseReserves = balances[baseIndex];
 
+    log.warning("About to calculate the spotPrice", [])
+
     yieldPoolState.spotPrice = BigDecimal.fromString(
         calcSpotPriceYt(
             yieldPoolState.baseReserves.toString(),
             yieldPoolState.ytReserves.toString()
         ).toString()
     );
+    log.warning("About to load yieldToken", []);
 
     let yieldToken = YieldToken.load(yieldPool.yToken);
 
@@ -63,6 +73,7 @@ export const addYieldPoolState = (
     }
 
     yieldPoolState.save();
+    log.warning("Added yield pool state {}", [id]);
     return yieldPoolState;
 }
 
