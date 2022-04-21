@@ -124,6 +124,8 @@ type PrincipalToken @entity {
 type User @entity {
   id: ID!
   Transactions: [EntryTransaction!]! @derivedFrom(field: "from")
+  YieldLiquidityChangeEvents: [YieldLiquidityChangeEvent!]! @derivedFrom(field: "liquidityProvider")
+  PrincipalLiquidityChangeEvents: [PrincipalLiquidityChangeEvent!]! @derivedFrom(field: "liquidityProvider")
 }
 
 type YieldPool @entity {
@@ -223,6 +225,40 @@ type SwapTransaction @entity {
   tokenOutAddress: Bytes!
   yieldPool: YieldPool
   principalPool: PrincipalPool
+}
+
+type PrincipalLiquidityChangeEvent @entity {
+  id: ID!
+  timestamp: Timestamp!
+  tokens: [String!]!
+  deltas: [BigInt!]!
+  liquidityProvider: User!
+  liquidityPosition: PrincipalLiquidityPosition!
+  pool: PrincipalPool!
+}
+
+type YieldLiquidityChangeEvent @entity {
+  id: ID!
+  timestamp: Timestamp!
+  tokens: [String!]!
+  deltas: [BigInt!]!
+  liquidityProvider: User!
+  liquidityPosition: YieldLiquidityPosition!
+  pool: YieldPool!
+}
+
+type PrincipalLiquidityPosition @entity {
+  id: ID!
+  liquidityProvider: User!
+  pool: PrincipalPool!
+  principalLiquidityChangeEvents: [PrincipalLiquidityChangeEvent!]! @derivedFrom(field: "liquidityPosition")
+}
+
+type YieldLiquidityPosition @entity {
+  id: ID!
+  liquidityProvider: User!
+  pool: YieldPool!
+  yieldLiquidityChangeEvents: [YieldLiquidityChangeEvent!]! @derivedFrom(field: "liquidityPosition")
 }
 
 type PrincipalSwapTransaction @entity {
