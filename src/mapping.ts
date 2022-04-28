@@ -9,7 +9,7 @@ import { addYieldPool } from "./entities/YieldPool";
 import { addPrincipalPool } from "./entities/PrincipalPool";
 import { ensureUser } from "./entities/User";
 import { ensureAccruedValue } from "./entities/AccruedValue";
-import { Swap } from "../generated/BalancerVault/IVault";
+import { PoolBalanceChanged, Swap } from "../generated/BalancerVault/IVault";
 import {
   ELEMENT_DEPLOYER,
   SECONDS_IN_AN_HOUR,
@@ -24,6 +24,10 @@ import { addYieldPoolState } from "./entities/YieldPoolState";
 import { logPrices } from "./entities/Price";
 import { ensureRegistry } from "./entities/Registry";
 import { initialize } from "./initialize";
+import {
+  addPrincipalLiquidityChangeEvent,
+  addYieldLiquidityChangeEvent,
+} from "./entities/Liquidity";
 
 initialize();
 
@@ -144,4 +148,23 @@ function handleDailyPoolUpdate(event: ethereum.Event): void {
   if (oneHourAgo.gt(registry.lastUpdatePriceFeeds)) {
     logPrices(timestamp);
   }
+}
+
+function handlePoolBalanceChange(event: PoolBalanceChanged): void {
+  let principalPool = PrincipalPool.load(event.params.poolId.toHexString());
+  if (principalPool) {
+    log.warning("Matched principal pool Id {}", [principalPool.id]);
+    addPrincipalLiquidityChangeEvent(event);
+  }
+  // then check if the pool is a valid yPool
+  let yPool = YieldPool.load(event.params.poolId.toHexString());
+  if (yPool) {
+    log.warning("Matched yield pool Id {}", [yPool.id]);
+    addYieldLiquidityChangeEvent(event);
+  }
+
+  // Updates once per day, principalPools, yieldPools and prices
+  log.warning("Unmatched {}", [event.address.toHexString()]);
+  handleDailyPoolUpdate(event);
+  return;
 }

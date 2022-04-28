@@ -98,6 +98,8 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleSwapEvent
+        - event: PoolBalanceChanged(indexed bytes32,indexed address,address[],int256[],uint256[])
+          handler: handlePoolBalanceChange
       file: ./src/mapping.ts
   - kind: ethereum
     name: YieldTokenCompounding

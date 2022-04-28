@@ -252,6 +252,10 @@ type PrincipalLiquidityPosition @entity {
   liquidityProvider: User!
   pool: PrincipalPool!
   principalLiquidityChangeEvents: [PrincipalLiquidityChangeEvent!]! @derivedFrom(field: "liquidityPosition")
+  pToken: PrincipalToken
+  pTokenAmount: BigInt!
+  bToken: BaseToken!
+  bTokenAmount: BigInt!
 }
 
 type YieldLiquidityPosition @entity {
@@ -259,6 +263,10 @@ type YieldLiquidityPosition @entity {
   liquidityProvider: User!
   pool: YieldPool!
   yieldLiquidityChangeEvents: [YieldLiquidityChangeEvent!]! @derivedFrom(field: "liquidityPosition")
+  yToken: PrincipalToken
+  yTokenAmount: BigInt!
+  bToken: BaseToken!
+  bTokenAmount: BigInt!
 }
 
 type PrincipalSwapTransaction @entity {
