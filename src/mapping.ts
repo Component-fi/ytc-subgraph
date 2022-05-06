@@ -99,18 +99,18 @@ export function handleSwapEvent(event: Swap): void {
   // first check if the pool is a valid pPool
   let principalPool = PrincipalPool.load(event.params.poolId.toHexString());
   if (principalPool) {
-    log.warning("Matched principal pool Id {}", [principalPool.id]);
+    log.info("Matched principal pool Id {}", [principalPool.id]);
     handlePrincipalPoolSwap(event);
   }
   // then check if the pool is a valid yPool
   let yPool = YieldPool.load(event.params.poolId.toHexString());
   if (yPool) {
-    log.warning("Matched yield pool Id {}", [yPool.id]);
+    log.info("Matched yield pool Id {}", [yPool.id]);
     handleYieldPoolSwap(event);
   }
 
   // Updates once per day, principalPools, yieldPools and prices
-  log.warning("Unmatched {}", [event.address.toHexString()]);
+  log.info("Unmatched {}", [event.address.toHexString()]);
   handleDailyPoolUpdate(event);
   return;
 }
@@ -150,7 +150,7 @@ function handleDailyPoolUpdate(event: ethereum.Event): void {
   }
 }
 
-function handlePoolBalanceChange(event: PoolBalanceChanged): void {
+export function handlePoolBalanceChange(event: PoolBalanceChanged): void {
   let principalPool = PrincipalPool.load(event.params.poolId.toHexString());
   if (principalPool) {
     log.warning("Matched principal pool Id {}", [principalPool.id]);

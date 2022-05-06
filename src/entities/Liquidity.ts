@@ -9,6 +9,7 @@ import {
 import { PoolBalanceChanged } from "../../generated/BalancerVault/IVault";
 import { ensureTimestamp } from "./Timestamp";
 import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { ensureUser } from "./User";
 
 export const addPrincipalLiquidityChangeEvent = (
   event: PoolBalanceChanged
@@ -16,41 +17,39 @@ export const addPrincipalLiquidityChangeEvent = (
   const id =
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 
-  let principalLiquidityChangeEvent = PrincipalLiquidityChangeEvent.load(id);
+  const timestampEntity = ensureTimestamp(event.block.timestamp);
 
-  if (!principalLiquidityChangeEvent) {
-    const timestampEntity = ensureTimestamp(event.block.timestamp);
+  let principalLiquidityChangeEvent = new PrincipalLiquidityChangeEvent(id);
+  let lp = ensureUser(event.params.liquidityProvider.toHexString()).id;
+  principalLiquidityChangeEvent.timestamp = timestampEntity.id;
+  principalLiquidityChangeEvent.timestampId = event.block.timestamp;
+  principalLiquidityChangeEvent.tokens = event.params.tokens.map<string>((t) =>
+    t.toHexString()
+  );
+  principalLiquidityChangeEvent.deltas = event.params.deltas;
+  principalLiquidityChangeEvent.liquidityProvider = lp;
 
-    principalLiquidityChangeEvent = new PrincipalLiquidityChangeEvent(id);
-    principalLiquidityChangeEvent.timestamp = timestampEntity.id;
-    principalLiquidityChangeEvent.deltas = event.params.deltas;
-
-    principalLiquidityChangeEvent.tokens = event.params.tokens.map<string>(
-      (t: Address): string => t.toHexString()
-    );
-
-    principalLiquidityChangeEvent.save();
-  }
-
-  let lp = event.params.liquidityProvider.toHexString();
   let poolId = event.params.poolId.toHexString();
-  const plp = ensurePrincipalLiquidityPosition(poolId, lp);
+  const liquidityPosition = ensurePrincipalLiquidityPosition(poolId, lp);
+
+  principalLiquidityChangeEvent.liquidityPosition = liquidityPosition.id;
+  principalLiquidityChangeEvent.save();
 
   // go through each token that has changed amounts
-  for (let i = 0; i <= principalLiquidityChangeEvent.tokens.length; i++) {
-    if (plp.bToken == principalLiquidityChangeEvent.tokens[i]) {
-      plp.bTokenAmount = plp.bTokenAmount.plus(
+  for (let i = 0; i < principalLiquidityChangeEvent.tokens.length; i++) {
+    if (liquidityPosition.bToken == principalLiquidityChangeEvent.tokens[i]) {
+      liquidityPosition.bTokenAmount = liquidityPosition.bTokenAmount.plus(
         principalLiquidityChangeEvent.deltas[i]
       );
     }
-    if (plp.pToken == principalLiquidityChangeEvent.tokens[i]) {
-      plp.pTokenAmount = plp.pTokenAmount.plus(
+    if (liquidityPosition.pToken == principalLiquidityChangeEvent.tokens[i]) {
+      liquidityPosition.pTokenAmount = liquidityPosition.pTokenAmount.plus(
         principalLiquidityChangeEvent.deltas[i]
       );
     }
   }
 
-  plp.save();
+  liquidityPosition.save();
   return principalLiquidityChangeEvent;
 };
 
@@ -59,39 +58,40 @@ export const addYieldLiquidityChangeEvent = (
 ): YieldLiquidityChangeEvent => {
   const id =
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
-  let yieldLiquidityChangeEvent = YieldLiquidityChangeEvent.load(id);
 
-  if (!yieldLiquidityChangeEvent) {
-    const timestampEntity = ensureTimestamp(event.block.timestamp);
+  const timestampEntity = ensureTimestamp(event.block.timestamp);
 
-    yieldLiquidityChangeEvent = new YieldLiquidityChangeEvent(id);
-    yieldLiquidityChangeEvent.timestamp = timestampEntity.id;
-    yieldLiquidityChangeEvent.deltas = event.params.deltas;
-    yieldLiquidityChangeEvent.tokens = event.params.tokens.map<string>((t) =>
-      t.toHexString()
-    );
-    yieldLiquidityChangeEvent.liquidityProvider = event.params.liquidityProvider.toHexString();
-    yieldLiquidityChangeEvent.save();
-  }
-  let lp = event.params.liquidityProvider.toHexString();
+  let yieldLiquidityChangeEvent = new YieldLiquidityChangeEvent(id);
+  let lp = ensureUser(event.params.liquidityProvider.toHexString()).id;
+  yieldLiquidityChangeEvent.timestamp = timestampEntity.id;
+  yieldLiquidityChangeEvent.timestampId = event.block.timestamp;
+  yieldLiquidityChangeEvent.tokens = event.params.tokens.map<string>((t) =>
+    t.toHexString()
+  );
+  yieldLiquidityChangeEvent.deltas = event.params.deltas;
+  yieldLiquidityChangeEvent.liquidityProvider = lp;
+
   let poolId = event.params.poolId.toHexString();
-  const ylp = ensureYieldLiquidityPosition(poolId, lp);
+  const liquidityPosition = ensureYieldLiquidityPosition(poolId, lp);
 
-  for (let i = 0; i <= yieldLiquidityChangeEvent.tokens.length; i++) {
-    if (ylp.bToken == yieldLiquidityChangeEvent.tokens[i]) {
-      ylp.bTokenAmount = ylp.bTokenAmount.plus(
+  yieldLiquidityChangeEvent.liquidityPosition = liquidityPosition.id;
+  yieldLiquidityChangeEvent.save();
+
+  // go through each token that has changed amounts
+  for (let i = 0; i < yieldLiquidityChangeEvent.tokens.length; i++) {
+    if (liquidityPosition.bToken == yieldLiquidityChangeEvent.tokens[i]) {
+      liquidityPosition.bTokenAmount = liquidityPosition.bTokenAmount.plus(
         yieldLiquidityChangeEvent.deltas[i]
       );
     }
-    if (ylp.yToken == yieldLiquidityChangeEvent.tokens[i]) {
-      ylp.yTokenAmount = ylp.yTokenAmount.plus(
+    if (liquidityPosition.yToken == yieldLiquidityChangeEvent.tokens[i]) {
+      liquidityPosition.yTokenAmount = liquidityPosition.yTokenAmount.plus(
         yieldLiquidityChangeEvent.deltas[i]
       );
     }
   }
 
-  //   ylp.save();
-
+  liquidityPosition.save();
   return yieldLiquidityChangeEvent;
 };
 
@@ -105,7 +105,7 @@ function ensurePrincipalLiquidityPosition(
   if (!principalLiquidityPosition) {
     principalLiquidityPosition = new PrincipalLiquidityPosition(id);
     principalLiquidityPosition.pool = poolId;
-    principalLiquidityPosition.liquidityProvider = providerId;
+    principalLiquidityPosition.liquidityProvider = ensureUser(providerId).id;
     // TODO get the pToken from the poolId
     const principalPool = PrincipalPool.load(poolId);
     if (!!principalPool) {
@@ -131,7 +131,7 @@ function ensureYieldLiquidityPosition(
   if (!yieldLiquidityPosition) {
     yieldLiquidityPosition = new YieldLiquidityPosition(id);
     yieldLiquidityPosition.pool = poolId;
-    yieldLiquidityPosition.liquidityProvider = providerId;
+    yieldLiquidityPosition.liquidityProvider = ensureUser(providerId).id;
     const yieldPool = YieldPool.load(poolId);
     if (!!yieldPool) {
       yieldLiquidityPosition.bToken = yieldPool.baseToken;
